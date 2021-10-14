@@ -1,0 +1,48 @@
+BasedOnStyle: Microsoft 
+UseTab: Always
+IndentWidth: 3
+TabWidth : 4
+ColumnLimit: 160
+PointerAlignment: Left
+
+
+FixNamespaceComments: true
+Cpp11BracedListStyle: true
+MaxEmptyLinesToKeep:  1
+
+AllowShortLoopsOnASingleLine: false
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowAllConstructorInitializersOnNextLine: true
+AllowShortBlocksOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+
+AlignAfterOpenBracket: Align 
+AlignConsecutiveAssignments: true
+AlignConsecutiveBitFields: true
+AlignConsecutiveDeclarations: true
+AlignConsecutiveMacros: true
+AlignTrailingComments: true
+
+
+
+SpacesInContainerLiterals: true
+SpaceBeforeCpp11BracedList: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeParens: false
+SpacesInAngles: false
+SpacesInConditionalStatement: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+NamespaceIndentation: None
+BinPackArguments: true
+BinPackParameters: true
+
+ReflowComments: false
+SortIncludes: true
+Standard: Latest
+AlwaysBreakTemplateDeclarations: Yes
+BreakBeforeBraces: Allman
+KeepEmptyLinesAtTheStartOfBlocks: false
