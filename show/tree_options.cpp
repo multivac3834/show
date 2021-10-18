@@ -4,29 +4,30 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cstdlib>
 #include <filesystem>
 #include <format>
 #include <fstream>
 #include <ranges>
-#include <cstdlib>
 #include <vector>
 
 void tree::Set::func()
 {
-	auto const key {Param::string()};
-	auto const value {Param::string()};
+	auto [key, value] = Param::get_arguments<arguments>();
 	Config::get_instance().create_new_key(key, value);
 }
 
 void tree::Get::func()
 {
-	std::string const key {Param::string()};
+	//std::string const key {Param::string()};
+
+	auto [key] {Param::get_arguments<arguments>()};
 
 	auto& config = Config::get_instance();
 
 	if(config.m_settings.contains(std::string {key}))
 	{
-		std::format_to(std::ostream_iterator<char>(std::cout), "key:{}\nvalue:{}", key, config.m_settings[key]);
+		std::format_to(std::ostream_iterator<char>(std::cout), "key:{}\nvalue:{}", key, config.m_settings[std::string {key}]);
 	}
 	else
 	{
@@ -42,16 +43,18 @@ Config::Config() noexcept
 
 	try
 	{
-		auto const is_small_file = [](fs::directory_entry const& p)
-		{ return p.exists() && p.is_regular_file() && (p.file_size() <= max_size); };
-		P const		   config_dir = Config::get_config_dir();
+		auto const	   is_small_file = [](fs::directory_entry const& p) { return p.exists() && p.is_regular_file() && (p.file_size() <= max_size); };
+		P const		   config_dir	 = Config::get_config_dir();
 		std::vector<P> files {};
 		std::ranges::copy_if(fs::directory_iterator(config_dir), std::back_inserter(files), is_small_file);
 
 		std::map<std::string, std::string> settings;
 		auto const						   load_file = [&settings](P const& p)
 		{
-			if(std::ifstream file {p}; file.is_open()) { file >> settings[p.filename().string()]; }
+			if(std::ifstream file {p}; file.is_open())
+			{
+				file >> settings[p.filename().string()];
+			}
 		};
 
 		std::ranges::for_each(files, load_file);

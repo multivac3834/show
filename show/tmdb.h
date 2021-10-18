@@ -20,8 +20,7 @@ using boolean = bool;
 using string  = std::string;
 
 template <typename T>
-concept IsJsonType = (std::same_as<T, integer> || std::same_as<T, number> || std::same_as<T, boolean> ||
-					  std::same_as<T, string>);
+concept IsJsonType = (std::same_as<T, integer> || std::same_as<T, number> || std::same_as<T, boolean> || std::same_as<T, string>);
 
 template <class T>
 concept isApiResult = requires(T x)
@@ -42,8 +41,7 @@ struct Movie
 	void			  parse(boost::json::standalone::value const& json);
 
 	boolean adult {}, video {};
-	string	backdrop_path {}, homepage {}, imdb_id {}, original_language {}, original_title {}, overview {},
-		release_date {}, tagline {}, title {};
+	string	backdrop_path {}, homepage {}, imdb_id {}, original_language {}, original_title {}, overview {}, release_date {}, tagline {}, title {};
 	integer budget {}, id {}, runtime {}, vote_count {};
 	number	popularity {}, vote_average {};
 };

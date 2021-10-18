@@ -1,6 +1,6 @@
 BasedOnStyle: Microsoft 
 UseTab: Always
-IndentWidth: 3
+IndentWidth: 4
 TabWidth : 4
 ColumnLimit: 160
 PointerAlignment: Left
