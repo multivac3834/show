@@ -1,6 +1,8 @@
-#include "tmdb.h"
+﻿#include "tmdb.h"
 #include "tree_util.h"
 #include "util.h"
+
+#include "utf_format.h"
 
 #include <algorithm>
 #include <cassert>
@@ -9,25 +11,23 @@
 #include <vector>
 
 void tree::Series_by_id::func()
-{	
+{
 	namespace fs = std::filesystem;
-	using P		 = fs::path;
+	
 
 	auto [id, season, folder] = Param::get_arguments<arguments>();
 
-	//tmdb::Series series{ id };
+	
 	auto series {tmdb::factory<tmdb::Series>(id)};
-
-	//tmdb::TV tv{ id,season };
 	auto tv {tmdb::factory<tmdb::TV>(id, season)};
 
-	using Ep = fs::path;
-	std::vector<Ep> eps {};
+	
+	std::vector<fs::path> eps {};
 
 	auto const digits_req {std::max(util::count_digits(tv.episodes.size()), size_t {2})};
 
-	auto const proj	  = [](auto const& e) { return e.path(); };
-	auto const filter = [](auto const& e) { return fs::is_regular_file(e); };
+	auto const proj {[](auto const& e) { return e.path(); }};
+	auto const filter {[](auto const& e) { return fs::is_regular_file(e); }};
 	std::ranges::copy_if(fs::directory_iterator {folder}, std::back_inserter(eps), filter, proj);
 	std::ranges::sort(eps); //alphanumeric
 
@@ -43,10 +43,10 @@ void tree::Series_by_id::func()
 		std::string plex_name {std::format(fmt, series.name, tv.season_number, tv.episodes.at(i).episode_number, tv.episodes.at(i).name)};
 		util::make_ntfs_compliant(plex_name);
 
-		std::cout << eps.at(i).string() << " -> \"" << plex_name << "\"\n";
+		std::cout << eps.at(i).filename().string() << " -> \"" << plex_name << "\"\n";
 
-		P const old_path = eps.at(i);
-		P const new_path = P {old_path}.replace_filename(plex_name);
+		fs::path const old_path {eps.at(i)};
+		fs::path const new_path = fs::path {old_path}.replace_filename(plex_name);
 
 		//if (/*dry_flag*/)
 		{
@@ -62,8 +62,7 @@ void tree::Series_by_id::func()
 
 void tree::Series_info::func()
 {
-	auto [q] = Param::get_arguments<arguments>();
-
+	auto [q] {Param::get_arguments<arguments>()};
 	auto const s {tmdb::factory<tmdb::Series_search>(std::string {q})};
 
 	if(s.m_series.empty())
@@ -73,27 +72,26 @@ void tree::Series_info::func()
 	}
 
 	using T = tmdb::Series_search::Entry const&;
-	auto const largest_title =
-		std::max_element(s.m_series.begin(), s.m_series.end(), [](T lhs, T rhs) noexcept -> bool { return lhs.name.size() < rhs.name.size(); });
+	auto const largest_title {std::ranges::max_element(s.m_series, std::less {}, [](auto const& e) { return e.name.size(); })};
+	auto const largest_id {std::ranges::max_element(s.m_series, std::less {}, [](T a) { return util::count_digits(a.id); })};
 
-	auto const largest_id = std::max_element(s.m_series.begin(), s.m_series.end(),
-											 [](T lhs, T rhs) noexcept -> bool { return util::count_digits(lhs.id) < util::count_digits(rhs.id); });
+	size_t const len_title {std::max(std::size_t {10}, largest_title->name.size() + 1)};
+	size_t const len_id {std::max(util::count_digits(largest_id->id) + 1, (size_t)8)};
+	size_t constexpr len_date {12};
 
-	size_t const title {std::max(std::size_t {10}, largest_title->name.size() + 1)};
-	size_t const id {std::max(util::count_digits(largest_id->id) + 1, (size_t)8)};
-	size_t constexpr date {11};
+	std::cout << utf::fill_align(lang::TITLE, len_title, utf::Alignment::center) << utf::to_string(u8"║");
+	std::cout << utf::fill_align(lang::DATE, len_date, utf::Alignment::center) << utf::to_string(u8"║");
+	std::cout << utf::fill_align("tmdb-ID", len_id, utf::Alignment::center) << "\n";
 
-	//head
-	std::cout << std::left << std::setw(title) << lang::TITLE << std::setw(1) << '|' << std::setw(date) << lang::DATE << std::setw(1) << '|' << std::setw(id)
-			  << " tmdb-ID" << std::setw(0) << '\n';
-	std::cout << std::setfill('-') << std::setw(title) << "" << std::setw(1) << '|' << std::setw(date) << "" << std::setw(1) << '|' << std::setw(id) << ""
-			  << std::setw(0) << '\n';
+	std::cout << utf::fill_align("", len_title, utf::Alignment::left, u8"═") << utf::to_string(u8"╬");
+	std::cout << utf::fill_align("", len_date, utf::Alignment::left, u8"═") << utf::to_string(u8"╬");
+	std::cout << utf::fill_align("", len_id, utf::Alignment::left, u8"═") << '\n';
 
 	for(auto const& e : s.m_series)
 	{
-		std::cout << std::setfill(' ') << std::setw(title) << e.name << std::setw(1) << '|' << std::setw(date) << e.first_air_date << std::setw(1) << '|'
-				  << std::right << std::setw(id) << e.id << std::setw(0) << '\n'
-				  << std::left;
+		std::cout << utf::fill_align(e.name, len_title, utf::Alignment::left) << utf::to_string(u8"║");
+		std::cout << utf::fill_align(e.first_air_date, len_date, utf::Alignment::center) << utf::to_string(u8"║");
+		std::cout << utf::fill_align(std::to_string(e.id), len_id, utf::Alignment::right) << "\n";
 	}
 	std::cout << std::endl;
 }

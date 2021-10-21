@@ -1,15 +1,16 @@
-#include "tmdb.h"
+﻿#include "tmdb.h"
 #include "tree_util.h"
+#include "utf_format.h"
 #include "util.h"
 
 #include <iostream>
+#include <ranges>
 
 namespace tree
 {
 void Movie_info::func()
 {
-	auto [query] = Param::get_arguments<arguments>();
-
+	auto [query] {Param::get_arguments<arguments>()};
 	auto const search_result {tmdb::factory<tmdb::Movie_search>(std::string {query})};
 
 	if(search_result.m_movies.empty())
@@ -18,29 +19,27 @@ void Movie_info::func()
 		std::exit(EXIT_SUCCESS);
 	}
 
-	using T					 = tmdb::Movie_search::Entry const&;
-	auto const largest_title = std::max_element(search_result.m_movies.begin(), search_result.m_movies.end(),
-												[](T lhs, T rhs) -> bool { return lhs.title.size() < rhs.title.size(); });
+	using T = tmdb::Movie_search::Entry const&;
+	auto const largest_title {std::ranges::max_element(search_result.m_movies, std::less {}, [](T const& a) { return utf::count_codepoints(a.title); })};
+	auto const largest_id {std::ranges::max_element(search_result.m_movies, std::less {}, [](T const& a) { return util::count_digits(a.id); })};
 
+	size_t const len_title {std::max(size_t {10}, utf::count_codepoints(largest_title->title) + 2)};
+	size_t const len_id {std::max(util::count_digits(largest_id->id) + 2, size_t {8})};
+	size_t constexpr len_date {12};
 
-	auto const largest_id = std::max_element(search_result.m_movies.begin(), search_result.m_movies.end(),
-											 [](T lhs, T rhs) noexcept -> bool { return util::count_digits(lhs.id) < util::count_digits(rhs.id); });
+	std::cout << utf::fill_align(lang::TITLE, len_title, utf::Alignment::center) << utf::to_string(u8"║");
+	std::cout << utf::fill_align(lang::DATE, len_date, utf::Alignment::center) << utf::to_string(u8"║");
+	std::cout << utf::fill_align("tmdb-ID", len_id, utf::Alignment::center) << '\n';
 
-	size_t const title {std::max(std::size_t {10}, largest_title->title.size() + 1)};
-	size_t const id {std::max(util::count_digits(largest_id->id) + 1, (size_t)8)};
-	size_t constexpr date {11};
+	std::cout << utf::fill_align("", len_title, utf::Alignment::left, u8"═") << utf::to_string(u8"╬");
+	std::cout << utf::fill_align("", len_date, utf::Alignment::left, u8"═") << utf::to_string(u8"╬");
+	std::cout << utf::fill_align("", len_id, utf::Alignment::left, u8"═") << '\n';
 
-	//head
-	std::cout << std::left << std::setw(title) << lang::TITLE << std::setw(1) << '|' << std::setw(date) << lang::DATE << std::setw(1) << '|' << std::setw(id)
-			  << " tmdb-ID" << std::setw(0) << '\n';
-	std::cout << std::setfill('-') << std::setw(title) << "" << std::setw(1) << '|' << std::setw(date) << "" << std::setw(1) << '|' << std::setw(id) << ""
-			  << std::setw(0) << '\n';
-
-	for(auto const& e : search_result.m_movies)
+	for(auto const& mov : search_result.m_movies)
 	{
-		std::cout << std::setfill(' ') << std::setw(title) << e.title << std::setw(1) << '|' << std::setw(date) << e.release_date << std::setw(1) << '|'
-				  << std::right << std::setw(id) << e.id << std::setw(0) << '\n'
-				  << std::left;
+		std::cout << utf::fill_align(mov.title, len_title, utf::Alignment::left) << utf::to_string(u8"║");
+		std::cout << utf::fill_align(mov.release_date, len_date, utf::Alignment::center) << utf::to_string(u8"║");
+		std::cout << utf::fill_align(std::to_string(mov.id), len_id, utf::Alignment::right) << '\n';
 	}
 	std::cout << std::endl;
 }

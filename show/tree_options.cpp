@@ -19,11 +19,8 @@ void tree::Set::func()
 
 void tree::Get::func()
 {
-	//std::string const key {Param::string()};
-
 	auto [key] {Param::get_arguments<arguments>()};
-
-	auto& config = Config::get_instance();
+	auto& config {Config::get_instance()};
 
 	if(config.m_settings.contains(std::string {key}))
 	{
@@ -39,12 +36,12 @@ Config::Config() noexcept
 {
 	namespace fs = std::filesystem;
 	using P		 = fs::path;
-	size_t const max_size {1024};
+	size_t constexpr max_size {1024};
 
 	try
 	{
-		auto const	   is_small_file = [](fs::directory_entry const& p) { return p.exists() && p.is_regular_file() && (p.file_size() <= max_size); };
-		P const		   config_dir	 = Config::get_config_dir();
+		auto const	   is_small_file {[](fs::directory_entry const& p) { return p.exists() && p.is_regular_file() && (p.file_size() <= max_size); }};
+		P const		   config_dir {Config::get_config_dir()};
 		std::vector<P> files {};
 		std::ranges::copy_if(fs::directory_iterator(config_dir), std::back_inserter(files), is_small_file);
 
@@ -70,17 +67,15 @@ auto Config::get_config_dir() -> std::filesystem::path
 
 {
 	namespace fs = std::filesystem;
-	using P		 = fs::path;
 
-	size_t const buffer_size {512};
-
+	size_t constexpr buffer_size {512};
 	std::array<char, buffer_size> b {};
 	size_t						  writen_char_count {};
 	errno_t const				  err {getenv_s(&writen_char_count, b.data(), b.size(), "USERPROFILE")};
 	assert(err == 0);
 
-	P		   home_dir {b.data()};
-	P		   config_dir {home_dir / ".show"};
+	fs::path   home_dir {b.data()};
+	fs::path   config_dir {home_dir / ".show"};
 	auto const config_dir_exists = fs::is_directory(config_dir);
 	if(!config_dir_exists)
 	{
@@ -114,12 +109,16 @@ auto Config::get_api_key() -> std::string
 	return m_settings.contains(key) ? std::string {"api_key=" + m_settings[key]} : "api_key=xxx";
 }
 
+auto Config::get_adult() -> std::string
+{
+	std::string const key {"adult"};
+	return m_settings.contains(key) ? std::string {"include_adult=" + m_settings[key]} : "include_adult=false";
+}
+
 auto Config::create_new_key(std::string_view key, std::string_view value) -> bool
 {
-	namespace fs	   = std::filesystem;
-	using P			   = fs::path;
-	P const config_dir = this->get_config_dir();
-
+	namespace fs			  = std::filesystem;
+	fs::path const config_dir {this->get_config_dir()};
 	try
 	{
 		std::ofstream file {config_dir / key};

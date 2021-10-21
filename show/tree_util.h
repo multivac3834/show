@@ -22,8 +22,7 @@ struct Number
 	static auto get_value(std::string_view v) -> long long
 	{
 		long long n {};
-
-		auto [ptr, ec] {std::from_chars(v.data(), v.data() + v.size(), n)};
+		auto [ptr, ec] {std::from_chars(v.data(), &v.back(), n)};
 
 		if(ec != std::errc {})
 		{
@@ -120,8 +119,6 @@ auto get_arguments()
 	}
 	(idx_seq);
 
-	
-
 	return r;
 }
 
@@ -151,12 +148,17 @@ template <class Node, int depth = 0>
 void print_tree_r()
 {
 	for(int i = depth; i >= 0; --i)
+	{
 		std::cout << "  ";
+	}
 
 	std::cout << Node::NAME;
 
 	if constexpr(is_leaf<Node>())
-		std::cout << ' ', Param::print_arguments_req<typename Node::arguments>();
+	{
+		std::cout << ' ';
+		Param::print_arguments_req<typename Node::arguments>();
+	}
 
 	std::cout << '\n';
 	constexpr size_t num_children = std::tuple_size_v<typename Node::children>;
@@ -201,6 +203,7 @@ constexpr auto get_child_index(std::integer_sequence<T, n...>, std::string_view 
 	return std::ranges::count(candidates, best_candidate.second, &std::pair<int, int>::second) == 1 ? best_candidate.first : std::numeric_limits<size_t>::max();
 }
 
+#pragma warning( suppress : 26497)
 template <class Tup, class T, T... n>
 void call_next_node(std::integer_sequence<T, n...>, size_t next)
 {
@@ -232,8 +235,8 @@ void traverse()
 	{
 		if(g::ARGUMENTS->num_of_arguments_left() > 0)
 		{
-			auto constexpr idx_sq = std::make_index_sequence<std::tuple_size_v<typename Node::children>> {};
-			size_t const c_idx	  = get_child_index<typename Node::children>(idx_sq, g::ARGUMENTS->pop_front());
+			auto const	 idx_sq = std::make_index_sequence<std::tuple_size_v<typename Node::children>> {};
+			size_t const c_idx	= get_child_index<typename Node::children>(idx_sq, g::ARGUMENTS->pop_front());
 			if(c_idx == std::numeric_limits<size_t>::max())
 				tree::print_tree_r<Node>(); // non matching argument
 			else
@@ -270,7 +273,7 @@ struct Movie_by_name
 	using arguments							= std::tuple<Param::String, Param::File>;
 	constexpr static std::string_view NAME	= "by-name";
 	constexpr static std::string_view USAGE = "Usage:\n\tby-name [title][file]";
-	static void func();
+	static void						  func();
 };
 
 struct Movie

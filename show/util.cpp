@@ -19,10 +19,23 @@ auto util::Args::pop_front() noexcept -> std::string_view
    return front;
 }
 
-auto util::count_digits(__int64 n) noexcept -> size_t
+util::Args::Args(int argc, char** argv) noexcept : cmd_line(argv, argc)
 {
-   return std::to_string(n).length();
+	cmd_line = cmd_line.subspan(1);
 }
+
+constexpr auto util::count_digits(__int64 n) noexcept -> size_t
+{
+	size_t constexpr dec {10};
+	size_t digits {};
+	while(n != 0)
+	{
+		n /= dec;
+		++digits;
+	}
+	return digits;
+}
+
 
 auto util::make_ntfs_compliant(std::string& in) -> void
 {

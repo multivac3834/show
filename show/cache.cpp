@@ -16,7 +16,10 @@ auto add(std::string_view json, std::string_view url) -> void
 
 	cache_dir = cache_dir / ss.str();
 
-	if(std::ofstream file {cache_dir, std::ofstream::trunc | std::ofstream::binary}; file.is_open()) { file << json; }
+	if(std::ofstream file {cache_dir, std::ofstream::trunc | std::ofstream::binary}; file.is_open())
+	{
+		file << json;
+	}
 }
 
 auto get(std::string_view url) -> std::string
@@ -29,8 +32,8 @@ auto get(std::string_view url) -> std::string
 	ss << std::hex << hash;
 
 	auto const file_dir {cache_dir / ss.str()};
-	auto const is_file {fs::is_regular_file(file_dir)};
-	assert(is_file);
+
+	assert(fs::is_regular_file(file_dir));
 
 	std::string json {};
 	if(std::ifstream file {file_dir, std::ofstream::binary}; file.is_open())

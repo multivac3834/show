@@ -24,6 +24,7 @@ class Config
 	auto		create_new_key(std::string_view key, std::string_view value) -> bool;
 	static auto get_instance() noexcept -> Config&;
 
-	auto get_lang() -> std::string;
-	auto get_api_key() -> std::string;
+	[[nodiscard]] auto get_lang() -> std::string;
+	[[nodiscard]] auto get_api_key() -> std::string;
+	[[nodiscard]] auto get_adult() -> std::string;
 };

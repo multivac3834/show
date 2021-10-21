@@ -84,7 +84,8 @@
     </RunCodeAnalysis>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <EnableMicrosoftCodeAnalysis>true</EnableMicrosoftCodeAnalysis>
+    <EnableMicrosoftCodeAnalysis>
+    </EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -92,7 +93,8 @@
     </RunCodeAnalysis>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <EnableMicrosoftCodeAnalysis />
+    <EnableMicrosoftCodeAnalysis>
+    </EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -100,7 +102,8 @@
     </RunCodeAnalysis>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <EnableMicrosoftCodeAnalysis>true</EnableMicrosoftCodeAnalysis>
+    <EnableMicrosoftCodeAnalysis>
+    </EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -108,7 +111,8 @@
     </RunCodeAnalysis>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <EnableMicrosoftCodeAnalysis />
+    <EnableMicrosoftCodeAnalysis>
+    </EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <VcpkgUseStatic>
@@ -152,6 +156,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
+      <LinkStatus>true</LinkStatus>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -181,6 +186,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LinkStatus>true</LinkStatus>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -207,6 +213,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
+      <LinkStatus>true</LinkStatus>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -236,6 +243,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LinkStatus>true</LinkStatus>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -253,6 +261,7 @@
     <ClInclude Include="curl_wrapper.h" />
     <ClInclude Include="lang.h" />
     <ClInclude Include="options.h" />
+    <ClInclude Include="utf_format.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="tmdb.h" />
     <ClInclude Include="tree_util.h" />
