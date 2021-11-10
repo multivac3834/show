@@ -57,7 +57,7 @@ void Movie_by_id::func()
 
 	auto const movie {tmdb::factory<tmdb::Movie>(id)};
 
-	std::string plex_style {std::format("{0} ({1}) {{imdb-{2}}}{4}", movie.title, movie.release_date, movie.imdb_id, file.extension().string())};
+	std::string plex_style {std::format("{} ({}) {{imdb-{}}}{}", movie.title, movie.release_date, movie.imdb_id, file.extension().string())};
 	util::make_ntfs_compliant(plex_style);
 
 	P const old_path = file;

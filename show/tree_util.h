@@ -22,7 +22,7 @@ struct Number
 	static auto get_value(std::string_view v) -> long long
 	{
 		long long n {};
-		auto [ptr, ec] {std::from_chars(v.data(), &v.back(), n)};
+		auto [ptr, ec] {std::from_chars(v.data(), &v.back() + 1, n)};
 
 		if(ec != std::errc {})
 		{
