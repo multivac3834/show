@@ -203,7 +203,7 @@ constexpr auto get_child_index(std::integer_sequence<T, n...>, std::string_view 
 	return std::ranges::count(candidates, best_candidate.second, &std::pair<int, int>::second) == 1 ? best_candidate.first : std::numeric_limits<size_t>::max();
 }
 
-#pragma warning( suppress : 26497)
+#pragma warning(suppress : 26497)
 template <class Tup, class T, T... n>
 void call_next_node(std::integer_sequence<T, n...>, size_t next)
 {

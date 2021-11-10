@@ -90,8 +90,7 @@ Movie::Movie(integer movie_id) : url {std::format("{}movie/{}?{}&{}", prefix(), 
 {
 }
 
-TV::TV(integer tv_id, integer season_number_)
-	: url {std::format("{}tv/{}/season/{}?{}&", prefix(), tv_id, season_number_, key(), lang())}
+TV::TV(integer tv_id, integer season_number_) : url {std::format("{}tv/{}/season/{}?{}&", prefix(), tv_id, season_number_, key(), lang())}
 {
 }
 
@@ -120,6 +119,15 @@ void Movie::parse(boost::json::standalone::value const& json)
 
 	popularity	 = value_or_default(json, "popularity", 0.0);
 	vote_average = value_or_default(json, "vote_average", 0.0);
+
+	auto const& pcs = json.at("production_countries").as_array();
+
+	for(auto const& pc : pcs)
+	{
+		std::string iso_3166_1 = value_or_default(pc, "iso_3166_1", ""s);
+		std::string name	   = value_or_default(pc, "name", ""s);
+		this->production_countries.emplace_back(iso_3166_1, name);
+	}
 }
 
 void TV::parse(boost::json::standalone::value const& json)
@@ -132,9 +140,9 @@ void TV::parse(boost::json::standalone::value const& json)
 	overview	= value_or_default(json, "overview", ""s);
 	poster_path = value_or_default(json, "poster_path", ""s);
 
-	id			  = value_or_default(json, "id", tmdb::integer {0});
-	season_number = value_or_default(json, "season_number", tmdb::integer {0});
-	auto const& eps	  = json.at("episodes").as_array();
+	id				= value_or_default(json, "id", tmdb::integer {0});
+	season_number	= value_or_default(json, "season_number", tmdb::integer {0});
+	auto const& eps = json.at("episodes").as_array();
 
 	for(auto const& ep : eps)
 	{
@@ -157,7 +165,6 @@ void TV::parse(boost::json::standalone::value const& json)
 	}
 }
 
-
 void Movie_search::parse(boost::json::standalone::value const& json)
 {
 	using namespace boost::json;
@@ -178,13 +185,11 @@ void Movie_search::parse(boost::json::standalone::value const& json)
 	}
 }
 
-Movie_search::Movie_search(string const& query)
-	: url {std::format("{0}search/movie?{1}&{2}&query={3}", prefix(), key(), lang(), curl::percent_encode(query))}
+Movie_search::Movie_search(string const& query) : url {std::format("{0}search/movie?{1}&{2}&query={3}", prefix(), key(), lang(), curl::percent_encode(query))}
 {
 }
 
-Series_search::Series_search(string const& query)
-	: url {std::format("{0}search/tv?{1}&{2}&query={3}", prefix(), key(), lang(), curl::percent_encode(query))}
+Series_search::Series_search(string const& query) : url {std::format("{0}search/tv?{1}&{2}&query={3}", prefix(), key(), lang(), curl::percent_encode(query))}
 {
 }
 
@@ -228,13 +233,19 @@ Error::Error(boost::json::standalone::value const& json)
 {
 	auto const& errs = json.at("errors").as_array();
 
-	for(auto const& err : errs) { errors.emplace_back(err.as_string()); }
+	for(auto const& err : errs)
+	{
+		errors.emplace_back(err.as_string());
+	}
 }
 
 Error::operator std::string()
 {
 	std::string out {};
-	for(auto const& e : this->errors) { out += e + '\n'; }
+	for(auto const& e : this->errors)
+	{
+		out += e + '\n';
+	}
 	return out;
 }
 

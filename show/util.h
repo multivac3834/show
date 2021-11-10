@@ -5,11 +5,11 @@
 #include <string>
 #include <string_view>
 
-
 namespace util
 {
 extern constexpr auto count_digits(__int64 n) noexcept -> size_t;
 auto				  make_ntfs_compliant(std::string& in) -> void;
+auto				  year_from_date(std::string const& date) -> std::string;
 
 struct Args
 {
@@ -18,8 +18,6 @@ struct Args
 	[[nodiscard]] auto num_of_arguments_left() const noexcept -> size_t;
 	[[nodiscard]] auto pop_front() noexcept -> std::string_view;
 	Args(int argc, char** argv) noexcept;
-		
-
 };
 
 } // namespace util
