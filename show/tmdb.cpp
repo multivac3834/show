@@ -120,6 +120,18 @@ void Movie::parse(boost::json::standalone::value const& json)
 
 	popularity	 = value_or_default(json, "popularity", 0.0);
 	vote_average = value_or_default(json, "vote_average", 0.0);
+
+	auto const& pcs = json.at("production_countries").as_array();
+
+	for(auto const& pc : pcs)
+	{
+		std::string iso_3166_1 = value_or_default(pc, "iso_3166_1", ""s);
+		std::string name	   = value_or_default(pc, "name", ""s);
+
+
+		//this->production_countries.emplace_back(iso_3166_1, name);
+	
+	}
 }
 
 void TV::parse(boost::json::standalone::value const& json)

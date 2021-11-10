@@ -40,6 +40,7 @@ struct Movie
 	std::string const url;
 	void			  parse(boost::json::standalone::value const& json);
 
+	std::vector<std::pair<std::string, std::string>> production_countries {};
 	boolean adult {}, video {};
 	string	backdrop_path {}, homepage {}, imdb_id {}, original_language {}, original_title {}, overview {}, release_date {}, tagline {}, title {};
 	integer budget {}, id {}, runtime {}, vote_count {};

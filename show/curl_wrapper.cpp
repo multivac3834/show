@@ -12,7 +12,12 @@
 #include <gsl/gsl-lite.hpp>
 #include <curl/curl.h>
 
-#ifdef WIN32
+
+
+
+
+
+#ifdef CURL_WIN32
 constexpr bool WINDOWS {true};
 #elif
 constexpr bool WINDOWS {false};
