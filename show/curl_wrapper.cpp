@@ -10,6 +10,8 @@
 
 
 #include <gsl/gsl-lite.hpp>
+
+#define CURL_STATICLIB
 #include <curl/curl.h>
 
 
@@ -39,7 +41,7 @@ struct Init
 			SetConsoleOutputCP(CP_UTF8);
 		}
 #pragma warning( suppress : 26812)
-		if(auto const cc = curl_global_init(CURL_GLOBAL_ALL); cc != 0)
+		if(auto const return_code = curl_global_init(CURL_GLOBAL_ALL); return_code != 0)
 		{
 			std::exit(EXIT_FAILURE);
 		}
@@ -49,12 +51,15 @@ struct Init
 	{
 		curl_global_cleanup();
 	}
-} _ {};
+} CURL_INITILZER {};
 
 auto percent_encode(std::string_view const unescaped) -> std::string
 {
-	constexpr size_t mb_8 {1024 * 1024 * 8};
-	assert(unescaped.size() < mb_8);
+	constexpr size_t mb_8 {1024LL * 1024LL * 8LL};
+	if(unescaped.size() > mb_8)
+	{
+		throw;
+	}
 
 	std::unique_ptr<CURL, void (*)(CURL*)> curl_ctx(curl_easy_init(), curl_easy_cleanup);
 	if(!curl_ctx)
@@ -94,9 +99,9 @@ auto http_get(std::string const& url) -> Http_response
 		{
 			return buffer.data();
 		}
-		void operator=(CURLcode ec)
+		void operator=(CURLcode error_code)
 		{
-			if(ec != CURLE_OK)
+			if(error_code != CURLE_OK)
 			{
 				std::cout << (buffer.data() != nullptr ? std::string(buffer.data()) : "Curl error, but error buffer is empty");
 				std::exit(EXIT_FAILURE);
@@ -134,10 +139,10 @@ auto Http_response::get_status_code() const noexcept -> int
 	}
 	header.remove_prefix(pos_sc);
 
-	int n {};
+	int code {};
 
-	auto [ptr, ec] {std::from_chars(header.data(), &header.back(), n)};
-	return ec == std::errc {} ? n : -1;
+	auto [ptr, ec] {std::from_chars(header.data(), &header.back(), code)};
+	return ec == std::errc {} ? code : -1;
 }
 
 } // namespace curl

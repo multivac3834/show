@@ -2,12 +2,6 @@
 
 namespace lang
 {
-//class Lang
-//{
-//	std::string_view TITLE{ " Title" };
-//	std::string_view DATE{ " Date" };
-//	std::string_view NO_RESULT{ "no result!" };
-//};
 
 inline char const* const TITLE {"Title"};
 inline char const* const DATE {"Date"};

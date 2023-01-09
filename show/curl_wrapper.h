@@ -12,7 +12,6 @@ struct Http_response
 	Buffer body;
 
 	[[nodiscard]] operator std::string_view() const noexcept;
-
 	[[nodiscard]] auto get_status_code() const noexcept -> int;
 };
 

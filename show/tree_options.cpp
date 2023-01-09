@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <iostream>
 #include <ranges>
 #include <vector>
 
@@ -24,7 +25,7 @@ void tree::Get::func()
 
 	if(config.m_settings.contains(std::string {key}))
 	{
-		std::format_to(std::ostream_iterator<char>(std::cout), "key:{}\nvalue:{}", key, config.m_settings[std::string {key}]);
+		std::format_to(std::ostream_iterator<char> {std::cout}, "key:{}\nvalue:{}", key, config.m_settings[std::string {key}]);		
 	}
 	else
 	{
@@ -59,12 +60,11 @@ Config::Config() noexcept
 	}
 	catch(...)
 	{
-		//std::cout << "Couldn't load configuration files";
+		std::cout << "Couldn't load configuration files";
 	}
 }
 
 auto Config::get_config_dir() -> std::filesystem::path
-
 {
 	namespace fs = std::filesystem;
 
@@ -72,7 +72,12 @@ auto Config::get_config_dir() -> std::filesystem::path
 	std::array<char, buffer_size> b {};
 	size_t						  writen_char_count {};
 	errno_t const				  err {getenv_s(&writen_char_count, b.data(), b.size(), "USERPROFILE")};
-	assert(err == 0);
+
+	if(err)
+	{
+		throw;
+	}
+	
 
 	fs::path   home_dir {b.data()};
 	fs::path   config_dir {home_dir / ".show"};
@@ -91,7 +96,7 @@ auto Config::get_config_dir() -> std::filesystem::path
 	return config_dir;
 }
 
-auto Config::get_instance() noexcept -> Config&
+Config& Config::get_instance() noexcept
 {
 	static Config cfg {};
 	return cfg;
@@ -100,13 +105,13 @@ auto Config::get_instance() noexcept -> Config&
 auto Config::get_lang() -> std::string
 {
 	std::string const key {"lang"};
-	return m_settings.contains(key) ? std::string {"language=" + m_settings[key]} : "language=en-US";
+	return m_settings.contains(key) ? m_settings[key] : "language=en-US";
 }
 
 auto Config::get_api_key() -> std::string
 {
 	std::string const key {"api_key"};
-	return m_settings.contains(key) ? std::string {"api_key=" + m_settings[key]} : "api_key=xxx";
+	return m_settings.contains(key) ? m_settings[key] : "api_key=xxx";
 }
 
 auto Config::get_adult() -> std::string
@@ -117,7 +122,7 @@ auto Config::get_adult() -> std::string
 
 auto Config::create_new_key(std::string_view key, std::string_view value) -> bool
 {
-	namespace fs			  = std::filesystem;
+	namespace fs = std::filesystem;
 	fs::path const config_dir {this->get_config_dir()};
 	try
 	{

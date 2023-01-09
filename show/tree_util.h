@@ -138,12 +138,6 @@ namespace tree
 {
 using leaf_t = std::tuple<>;
 
-template <class T>
-auto constexpr is_leaf() -> bool
-{
-	return std::is_same<T::children, tree::leaf_t>::value;
-}
-
 template <class Node, int depth = 0>
 void print_tree_r()
 {
@@ -154,7 +148,7 @@ void print_tree_r()
 
 	std::cout << Node::NAME;
 
-	if constexpr(is_leaf<Node>())
+	if constexpr(std::is_same_v<Node, std::tuple<>>)
 	{
 		std::cout << ' ';
 		Param::print_arguments_req<typename Node::arguments>();
@@ -165,10 +159,7 @@ void print_tree_r()
 
 	if constexpr(num_children > 0)
 		[&]<class T, T... n>(std::integer_sequence<T, n...>)
-		{
-			((print_tree_r<std::tuple_element_t<n, typename Node::children>, depth + 1>()), ...);
-		}
-	(std::make_index_sequence<num_children> {});
+		{ ((print_tree_r<std::tuple_element_t<n, typename Node::children>, depth + 1>()), ...); }(std::make_index_sequence<num_children> {});
 }
 
 template <class Tup, class T, T... n>
@@ -220,7 +211,7 @@ void call_next_node(std::integer_sequence<T, n...>, size_t next)
 template <class Node>
 void traverse()
 {
-	if constexpr(tree::is_leaf<Node>())
+	if constexpr(requires(const Node& node) { node.func(); })
 	{
 		if(g::ARGUMENTS->num_of_arguments_left() == std::tuple_size_v<typename Node::arguments>)
 		{
@@ -251,7 +242,7 @@ void traverse()
 
 struct Movie_info
 {
-	using children							= leaf_t;
+	using children							= std::tuple<>;
 	using arguments							= std::tuple<Param::String>;
 	constexpr static std::string_view NAME	= "info";
 	constexpr static std::string_view USAGE = "Usage:\n\tinfo [query]";
@@ -278,7 +269,7 @@ struct Movie_by_name
 
 struct Movie
 {
-	using children						   = std::tuple<Movie_by_id, Movie_by_name, Movie_info>;
+	using children						   = std::tuple<Movie_info, Movie_by_id, Movie_by_name>;
 	constexpr static std::string_view NAME = "movie";
 };
 
