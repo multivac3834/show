@@ -13,7 +13,7 @@ auto util::Args::num_of_arguments_left() const noexcept -> size_t
 
 auto util::Args::pop_front() noexcept -> std::string_view
 {
-	assert(cmd_line.empty());
+	assert(!cmd_line.empty());
 	std::string_view front = cmd_line.front();
 	cmd_line			   = cmd_line.subspan(1);
 	return front;

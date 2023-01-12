@@ -7,7 +7,6 @@
 #include <iterator>
 #include <vector>
 
-
 void tree::Series_by_id::func()
 {
 	auto [show_id, season_num, folder] {Param::get_arguments<arguments>()};
@@ -48,16 +47,18 @@ void tree::Series_by_id::func()
 
 void tree::Series_info::func()
 {
+	using namespace std::string_literals;
 	auto [query] {Param::get_arguments<arguments>()};
-	auto const	results = tmdb::factory<tmdb::Tv_search>(query);
-	auto const& j		= results.data;
+	auto const show = tmdb::factory<tmdb::Tv_search>(query).data;
 
-	for(auto const& i : j["results"])
+	size_t max = std::ranges::max(show["results"] | std::views::transform([](auto const& elem) -> size_t { return elem["name"].get<std::string>().size(); }));
+
+	for(auto const& episode : show["results"])
 	{
-		nlohmann::json::string_t const&			name = i.value("name", "-");
-		nlohmann::json::number_integer_t const& id	 = i.value("id", -1);
-		nlohmann::json::string_t const&			date = i.value("first_air_date", "-");
-
-		std::format_to(std::ostream_iterator<char> {std::cout}, "{} {} {}\n", name, date, id);
+		nlohmann::json::string_t const&			name	   = episode.value("name", "-");
+		nlohmann::json::number_integer_t const& identifier = episode.value("id", -1);
+		nlohmann::json::string_t const&			date	   = episode.value("first_air_date", "0000-00-00");
+		std::vformat_to(std::ostream_iterator<char> {std::cout}, "{:<"s + std::to_string(max) + "} {:10} {:>9}\n"s,
+						std::make_format_args(name, !date.empty() ? date : "0000-00-00", identifier));
 	}
 }
