@@ -14,7 +14,8 @@ void tree::Series_by_id::func()
 	auto const& show	 = tmdb::factory<tmdb::Tv>(show_id).data;
 	auto const& season	 = tmdb::factory<tmdb::Tv_season>(show_id, season_num).data;
 	auto const& episodes = season.at("episodes");
-	std::format_to(std::ostream_iterator<char> {std::cout}, "Tv show \"{}\" found\n", show.value("name", "No name"));
+	std::format_to(std::ostream_iterator<char> {std::cout}, "Tv show \"{}\" found.\n", show.value("name", "%name%"));
+	std::format_to(std::ostream_iterator<char> {std::cout}, "Season {} has {} episodes.\n", season_num, episodes.size());
 
 	using namespace std::filesystem;
 	auto			  filter = [](directory_entry const& file) -> bool { return file.is_regular_file(); };
@@ -24,7 +25,7 @@ void tree::Series_by_id::func()
 
 	if(files.size() != episodes.size())
 	{
-		std::cout << "missmatch!!!";
+		std::cout << "mismatch!!!\n";
 		std::exit(EXIT_FAILURE);
 	}
 
@@ -42,22 +43,27 @@ void tree::Series_by_id::func()
 
 		rename(files[i], new_path);
 	}
-	std::exit(EXIT_SUCCESS);
 }
 
 void tree::Series_info::func()
 {
 	using namespace std::string_literals;
 	auto [query] {Param::get_arguments<arguments>()};
-	auto const show = tmdb::factory<tmdb::Tv_search>(query).data;
+	nlohmann::json const show = tmdb::factory<tmdb::Tv_search>(query).data;
 
-	size_t max = std::ranges::max(show["results"] | std::views::transform([](auto const& elem) -> size_t { return elem["name"].get<std::string>().size(); }));
+	if(show.at("results").empty())
+	{
+		std::cout << "no results";
+		return;
+	}
+	size_t max =
+		std::ranges::max(show.at("results") | std::views::transform([](auto const& elem) -> size_t { return elem.at("name").get<std::string>().size(); }));
 
 	for(auto const& episode : show["results"])
 	{
-		nlohmann::json::string_t const&			name	   = episode.value("name", "-");
-		nlohmann::json::number_integer_t const& identifier = episode.value("id", -1);
-		nlohmann::json::string_t const&			date	   = episode.value("first_air_date", "0000-00-00");
+		nlohmann::json::string_t const		   name		  = episode.at("name");
+		nlohmann::json::number_integer_t const identifier = episode.at("id");
+		nlohmann::json::string_t const		   date		  = episode.at("first_air_date");
 		std::vformat_to(std::ostream_iterator<char> {std::cout}, "{:<"s + std::to_string(max) + "} {:10} {:>9}\n"s,
 						std::make_format_args(name, !date.empty() ? date : "0000-00-00", identifier));
 	}
