@@ -5,66 +5,72 @@
 
 namespace tree
 {
+
+using namespace std::string_literals;
+using namespace std::string_view_literals;
+
 void Movie_info::func()
 {
-	using namespace std::string_literals;
-	auto const [query] {Param::get_arguments<arguments>()};
-	auto		json = tmdb::factory<tmdb::Movie_search>(query);
-	auto const& j	 = json.data;
+	auto const& [query] {Param::get_arguments<arguments>()};
+	nlohmann::json movies = tmdb::factory<tmdb::Movie_search>(query).data;
 
-	size_t max = std::ranges::max(j["results"] | std::views::transform([](auto const& elem) -> size_t { return elem["title"].get<std::string>().size(); }));
-
-	
-
-	std::format_to(std::ostream_iterator<char> {std::cout}, "{} results for \"{}\"\n", j["results"].size(), query);
-
-	for(auto const& i : j["results"])
+	if(movies.at("results").empty())
 	{
-		auto const& title = i.value("title", "-");
-		auto const& date  = i.value("release_date", "-");
-		auto const& id	  = i.value("id", 0);
+		std::format_to(std::ostream_iterator<char> {std::cout}, "No movies found for \"{}\".\n", query);
+		return;
+	}
 
-		std::vformat_to(std::ostream_iterator<char> {std::cout}, "{:<"s + std::to_string(max) + "} {} {:>8}\n"s, std::make_format_args(title, date, id));
+	size_t const max =
+		std::ranges::max(movies.at("results") | std::views::transform([](auto const& elem) -> size_t { return elem.value("title", "%title%"s).size(); }));
+			
+	std::format_to(std::ostream_iterator<char> {std::cout}, "{} results for \"{}\"\n", movies.at("results").size(), query);
+
+	for(auto const& movie : movies["results"])
+	{
+		std::string		   title	  = movie.value("title", "%title%"s);
+		std::string		   date		  = movie.value("release_date", "%release_date%"s);
+		unsigned long long identifier = movie.value("id", 0ULL);
+
+		std::vformat_to(std::ostream_iterator<char> {std::cout}, "{:<"s + std::to_string(max) + "} {} {:>8}\n"s,
+						std::make_format_args(title, date, identifier));
 	}
 };
 
 void Movie_by_id::func()
 {
-	namespace fs = std::filesystem;
-	using P		 = fs::path;
+	using namespace std::string_literals;
+	using namespace std::filesystem;
 
-	auto [id, file]	 = Param::get_arguments<arguments>();
-	auto		json = tmdb::factory<tmdb::Movie>(id);
-	auto const& j	 = json.data;
+	auto [id, file]		 = Param::get_arguments<arguments>();
+	nlohmann::json movie = tmdb::factory<tmdb::Movie>(id).data;
 
-	auto const& title	= j.value("title", "missing");
-	auto const& date	= j.value("release_date", "missing");
-	auto const& imdb_id = j.value("imdb_id", "missing");
+	std::string title	= movie.value("title", "%title%"s);
+	std::string date	= movie.value("release_date", "%release_date%"s);
+	std::string imdb_id = movie.value("imdb_id", "%imdb_id%"s);
 
 	std::string plex_format = std::format("{} ({}) {{imdb-{}}}{}", title, date, imdb_id, file.extension().string());
 	util::make_ntfs_compliant(plex_format);
 
-	P const old_path = file;
-	P const new_path = file.replace_filename(plex_format);
+	path const old_path = file;
+	path const new_path = file.replace_filename(plex_format);
 
-	std::error_code ec {};
-	fs::rename(old_path, new_path, ec);
-	if(ec)
+	std::error_code error_code {};
+	rename(old_path, new_path, error_code);
+	if(error_code)
 	{
-		std::cout << ec.message();
+		std::cout << error_code.message();
 	}
 }
 
 void Movie_by_name::func()
 {
-	namespace fs = std::filesystem;
-	using P		 = fs::path;
+	using namespace std::string_literals;
+	using namespace std::filesystem;
 
-	auto [query, file] = Param::get_arguments<arguments>();
-	auto const	json   = tmdb::factory<tmdb::Movie_search>(query);
-	auto const& j	   = json.data;
+	auto [query, file]	  = Param::get_arguments<arguments>();
+	nlohmann::json movies = tmdb::factory<tmdb::Movie_search>(query).data;
 
-	size_t num_movies = j["results"].size();
+	size_t num_movies = movies.at("results").size();
 	std::format_to(std::ostream_iterator<char> {std::cout}, "{} results for \"{}\"\n", num_movies, query);
 	if(num_movies == 0)
 	{
@@ -72,25 +78,25 @@ void Movie_by_name::func()
 		std::exit(EXIT_SUCCESS);
 	}
 
-	nlohmann::json::number_integer_t id = j["results"].at(0)["id"];
+	nlohmann::json::number_integer_t best_movie = movies["results"].at(0)["id"];
 
-	auto const	movie	= tmdb::factory<tmdb::Movie>(id);
-	auto const& m		= movie.data;
-	auto const& title	= m.value("title", "missing");
-	auto const& date	= m.value("release_date", "missing");
-	auto const& imdb_id = m.value("imdb_id", "missing");
+	nlohmann::json movie = tmdb::factory<tmdb::Movie>(best_movie).data;
+
+	std::string title	= movie.value("title", "%title%"s);
+	std::string date	= movie.value("release_date", "%release_date%"s);
+	std::string imdb_id = movie.value("imdb_id", "%imdb_id%"s);
 
 	std::string plex_format = std::format("{} ({}) {{imdb-{}}}{}", title, date, imdb_id, file.extension().string());
 	util::make_ntfs_compliant(plex_format);
 
-	P const old_path = file;
-	P const new_path = file.replace_filename(plex_format);
+	path const old_path = file;
+	path const new_path = file.replace_filename(plex_format);
 
-	std::error_code ec {};
-	fs::rename(old_path, new_path, ec);
-	if(ec)
+	std::error_code error_code {};
+	rename(old_path, new_path, error_code);
+	if(error_code)
 	{
-		std::cout << ec.message();
+		std::cout << error_code.message();
 	}
 }
 

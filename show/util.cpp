@@ -1,5 +1,8 @@
 #include "util.h"
+#include <algorithm>
 #include <cassert>
+#include <ranges>
+#include <string_view>
 
 namespace g
 {
@@ -36,11 +39,15 @@ constexpr auto util::count_digits(__int64 n) noexcept -> size_t
 	return digits;
 }
 
-auto util::make_ntfs_compliant(std::string& in) -> void
+auto util::make_ntfs_compliant(std::string& str) -> void
 {
-	auto const bad_char = [](auto const& i)
-	{ return i == '/' || i == '\\' || i == ':' || i == '*' || i == '?' || i == '"' || i == '<' || i == '>' || i == '|'; };
-	in.erase(std::remove_if(in.begin(), in.end(), bad_char), in.end());
+	using namespace std::string_view_literals;
+	auto const is_bad = [](auto const& current_char)
+	{
+		auto input_range = std::ranges::single_view {current_char};
+		return input_range.end() != std::ranges::find_first_of(input_range, R"(/\\:*?\"<>|)"sv);
+	};
+	str.erase(std::remove_if(str.begin(), str.end(), is_bad), str.end());
 }
 
 auto util::year_from_date(std::string const& date) -> std::string

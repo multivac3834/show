@@ -8,16 +8,10 @@
 #include <memory>
 #include <span>
 
-
 #include <gsl/gsl-lite.hpp>
 
 #define CURL_STATICLIB
 #include <curl/curl.h>
-
-
-
-
-
 
 #ifdef CURL_WIN32
 constexpr bool WINDOWS {true};
@@ -29,10 +23,10 @@ namespace curl
 {
 struct Init
 {
-	Init(const Init&) = delete;					   // copy constructor
-	Init(Init&&)	  = delete;					   // move constructor
+	Init(const Init&)					 = delete; // copy constructor
+	Init(Init&&)						 = delete; // move constructor
 	auto operator=(const Init&) -> Init& = delete; // copy assignment
-	auto operator=(Init&&) -> Init& = delete;	   // move assignment
+	auto operator=(Init&&) -> Init&		 = delete; // move assignment
 
 	Init() noexcept
 	{
@@ -40,7 +34,7 @@ struct Init
 		{
 			SetConsoleOutputCP(CP_UTF8);
 		}
-#pragma warning( suppress : 26812)
+#pragma warning(suppress : 26812)
 		if(auto const return_code = curl_global_init(CURL_GLOBAL_ALL); return_code != 0)
 		{
 			std::exit(EXIT_FAILURE);
@@ -53,7 +47,7 @@ struct Init
 	}
 } CURL_INITILZER {};
 
-auto percent_encode(std::string_view const unescaped) -> std::string
+auto percent_encode(std::string_view unescaped) -> std::string
 {
 	constexpr size_t mb_8 {1024LL * 1024LL * 8LL};
 	if(unescaped.size() > mb_8)
@@ -67,7 +61,8 @@ auto percent_encode(std::string_view const unescaped) -> std::string
 		std::exit(EXIT_FAILURE);
 	}
 
-	std::unique_ptr<char, void (*)(void*)> curl_string(curl_easy_escape(curl_ctx.get(), unescaped.data(), gsl::narrow_cast<int>(unescaped.length())), curl_free);
+	std::unique_ptr<char, void (*)(void*)> curl_string(curl_easy_escape(curl_ctx.get(), unescaped.data(), gsl::narrow_cast<int>(unescaped.length())),
+													   curl_free);
 	if(!curl_string)
 	{
 		std::exit(EXIT_FAILURE);
@@ -107,17 +102,17 @@ auto http_get(std::string const& url) -> Http_response
 				std::exit(EXIT_FAILURE);
 			}
 		}
-	} ok; // release after curl_ctx
+	} error_handler; // release after curl_ctx
 
 	std::unique_ptr<CURL, void (*)(CURL*)> curl_ctx(curl_easy_init(), curl_easy_cleanup);
 	assert(curl_ctx.get());
-	curl_easy_setopt(curl_ctx.get(), CURLOPT_ERRORBUFFER, (char*)ok);
-	ok = curl_easy_setopt(curl_ctx.get(), CURLOPT_HEADERFUNCTION, write_function);
-	ok = curl_easy_setopt(curl_ctx.get(), CURLOPT_HEADERDATA, &(response.head));
-	ok = curl_easy_setopt(curl_ctx.get(), CURLOPT_WRITEFUNCTION, write_function);
-	ok = curl_easy_setopt(curl_ctx.get(), CURLOPT_WRITEDATA, &(response.body));
-	ok = curl_easy_setopt(curl_ctx.get(), CURLOPT_URL, url.c_str());
-	ok = curl_easy_perform(curl_ctx.get());
+	curl_easy_setopt(curl_ctx.get(), CURLOPT_ERRORBUFFER, (char*)error_handler);
+	error_handler = curl_easy_setopt(curl_ctx.get(), CURLOPT_HEADERFUNCTION, write_function);
+	error_handler = curl_easy_setopt(curl_ctx.get(), CURLOPT_HEADERDATA, &(response.head));
+	error_handler = curl_easy_setopt(curl_ctx.get(), CURLOPT_WRITEFUNCTION, write_function);
+	error_handler = curl_easy_setopt(curl_ctx.get(), CURLOPT_WRITEDATA, &(response.body));
+	error_handler = curl_easy_setopt(curl_ctx.get(), CURLOPT_URL, url.c_str());
+	error_handler = curl_easy_perform(curl_ctx.get());
 
 	return response;
 };

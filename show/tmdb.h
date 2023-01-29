@@ -9,47 +9,44 @@ namespace tmdb
 
 struct Movie_search
 {
-	static std::string url(std::string_view query);
-	nlohmann::json	   data;
+	static auto	   url(std::string_view query) -> std::string;
+	nlohmann::json data;
 };
 
 struct Movie
 {
-	static std::string url(nlohmann::json::number_integer_t query);
-	nlohmann::json	   data;
+	static auto	   url(nlohmann::json::number_integer_t query) -> std::string;
+	nlohmann::json data;
 };
-
 
 struct Tv_search
 {
-	static std::string url(std::string_view query);
-	nlohmann::json	   data;
+	static auto	   url(std::string_view query) -> std::string;
+	nlohmann::json data;
 };
 
 struct Tv
 {
-	static std::string url(nlohmann::json::number_integer_t query);
-	nlohmann::json	   data;
+	static auto	   url(nlohmann::json::number_integer_t query) -> std::string;
+	nlohmann::json data;
 };
 
 struct Tv_season
 {
-	static std::string url(nlohmann::json::number_integer_t tv_id, nlohmann::json::number_integer_t season_number);
-	nlohmann::json	   data;
+	static auto	   url(nlohmann::json::number_integer_t tv_id, nlohmann::json::number_integer_t season_number) -> std::string;
+	nlohmann::json data;
 };
 
-
-
-template <typename T,typename ... U>
-T factory(U ... query)
+template <typename T, typename... U>
+auto factory(U... query) -> T
 {
-	std::string url = T::url(query...);
+	T			obj {};
+	std::string url = obj.url(query...);
 	if(cache::is_stored(url))
 	{
 		std::string result = cache::get(url);
-		return T {.data = nlohmann::json::parse(result)};
+		obj.data		   = nlohmann::json::parse(result);
 	}
-
 	else
 	{
 		auto const result {curl::http_get(url)};
@@ -58,17 +55,17 @@ T factory(U ... query)
 		switch(return_code)
 		{
 		default:
-		case 404: 
-		case 401:			
-			throw return_code;
+			throw static_cast<int>(return_code);
 
-		case 200:
+		case curl::Http_status_code::ok:
 			break;
 		}
-		cache::add(result, url);
-		return T {.data = nlohmann::json::parse(std::string_view {result})};
+
+		cache::add(cache::Add_parameter {.json = result, .url = url});
+		obj.data = nlohmann::json::parse(std::string_view {result});
 	}
-}
+
+	return obj;
+};
 
 } // namespace tmdb
-

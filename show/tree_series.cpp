@@ -51,19 +51,18 @@ void tree::Series_info::func()
 	auto [query] {Param::get_arguments<arguments>()};
 	nlohmann::json const show = tmdb::factory<tmdb::Tv_search>(query).data;
 
-	if(show.at("results").empty())
+	if(!show.contains("results") || show.at("results").empty())
 	{
 		std::cout << "no results";
 		return;
 	}
-	size_t max =
-		std::ranges::max(show.at("results") | std::views::transform([](auto const& elem) -> size_t { return elem.at("name").get<std::string>().size(); }));
+	size_t max = std::ranges::max(show.at("results") | std::views::transform([](auto const& elem) -> size_t { return elem.value("name", ""s).size(); }));
 
 	for(auto const& episode : show["results"])
 	{
-		nlohmann::json::string_t const		   name		  = episode.at("name");
-		nlohmann::json::number_integer_t const identifier = episode.at("id");
-		nlohmann::json::string_t const		   date		  = episode.at("first_air_date");
+		nlohmann::json::string_t const		   name		  = episode.value("name", "%name%"s);
+		nlohmann::json::number_integer_t const identifier = episode.value("id", 0LL);
+		nlohmann::json::string_t const		   date		  = episode.value("first_air_date", "%first_air_date%");
 		std::vformat_to(std::ostream_iterator<char> {std::cout}, "{:<"s + std::to_string(max) + "} {:10} {:>9}\n"s,
 						std::make_format_args(name, !date.empty() ? date : "0000-00-00", identifier));
 	}

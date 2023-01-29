@@ -8,7 +8,7 @@
 namespace util
 {
 extern constexpr auto count_digits(__int64 n) noexcept -> size_t;
-auto				  make_ntfs_compliant(std::string& in) -> void;
+auto				  make_ntfs_compliant(std::string& str) -> void;
 auto				  year_from_date(std::string const& date) -> std::string;
 
 struct Args

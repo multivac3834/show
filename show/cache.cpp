@@ -2,19 +2,16 @@
 
 #include <cassert>
 #include <fstream>
-#include <sstream>
+#include <format>
 
 namespace cache
 {
-auto add(std::string_view json, std::string_view url) -> void
+auto add(Add_parameter value) -> void
 {
+	auto& [json, url] = value;
 	auto const hash {std::hash<std::string_view> {}(url)};
 	auto	   cache_dir {cache::get_cache_folder()};
-
-	std::stringstream ss {};
-	ss << std::hex << hash;
-
-	cache_dir = cache_dir / ss.str();
+	cache_dir = cache_dir / std::format("{:#x}", hash);
 
 	if(std::ofstream file {cache_dir, std::ofstream::trunc | std::ofstream::binary}; file.is_open())
 	{
@@ -28,10 +25,7 @@ auto get(std::string_view url) -> std::string
 	auto const hash {std::hash<std::string_view> {}(url)};
 	auto	   cache_dir {cache::get_cache_folder()};
 
-	std::stringstream ss {};
-	ss << std::hex << hash;
-
-	auto const file_dir {cache_dir / ss.str()};
+	auto const file_dir {cache_dir / std::format("{:#x}", hash)};
 
 	assert(fs::is_regular_file(file_dir));
 
@@ -49,10 +43,8 @@ auto is_stored(std::string_view url) -> bool
 	auto const hash {std::hash<std::string_view> {}(url)};
 	auto	   cache_dir {cache::get_cache_folder()};
 
-	std::stringstream ss {};
-	ss << std::hex << hash;
 
-	auto const file {cache_dir / ss.str()};
+	auto const file {cache_dir / std::format("{:#x}", hash)};
 	auto const is_file {fs::is_regular_file(file)};
 
 	return is_file;

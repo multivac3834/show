@@ -9,20 +9,25 @@ class Config
 {
 	using map = std::map<std::string, std::string>;
 
-	Config() noexcept;
+	Config();
 	~Config() = default;
 
 	static auto get_config_dir() -> std::filesystem::path;
 
   public:
-	Config(const Config&) = delete;
-	Config(Config&&)	  = delete;
+	Config(const Config&)					 = delete;
+	Config(Config&&)						 = delete;
 	auto operator=(const Config&) -> Config& = delete;
-	auto operator=(Config&&) -> Config& = delete;
+	auto operator=(Config&&) -> Config&		 = delete;
 
-	map			m_settings;
-	auto		create_new_key(std::string_view key, std::string_view value) -> bool;
-	static auto get_instance() noexcept -> Config&;
+	map m_settings;
+	struct Key_value
+	{
+		std::string_view key;
+		std::string_view value;
+	};
+	auto		create_new_key(Key_value kv_pair) -> bool;
+	static auto get_instance() -> Config&;
 
 	[[nodiscard]] auto get_lang() -> std::string;
 	[[nodiscard]] auto get_api_key() -> std::string;
