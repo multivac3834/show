@@ -194,22 +194,6 @@ constexpr auto get_child_index(std::integer_sequence<T, n...>, std::string_view 
 																										  : std::numeric_limits<size_t>::max();
 }
 
-#pragma warning(suppress : 26497)
-template <class Tup, class T, T... n>
-void call_next_node(std::integer_sequence<T, n...>, size_t next)
-{
-	(
-		[&]<class U>(auto idx)
-		{
-			if(idx == next)
-			{
-				traverse<U>();
-			}
-		}.
-		operator()<typename std::tuple_element_t<n, Tup>>(n),
-		...);
-}
-
 template <class Node>
 void traverse()
 {
@@ -245,6 +229,24 @@ void traverse()
 		}
 	}
 };
+
+#pragma warning(suppress : 26497)
+template <class Tup, class T, T... n>
+void call_next_node(std::integer_sequence<T, n...>, size_t next)
+{
+	(
+		[&]<class U>(auto idx)
+		{
+			if(idx == next)
+			{
+				traverse<U>();
+			}
+		}.
+		operator()<typename std::tuple_element_t<n, Tup>>(n),
+		...);
+}
+
+
 
 struct Movie_info
 {
